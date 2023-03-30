@@ -1,0 +1,137 @@
+---
+
+data_basedir: "."
+data_path: "sample-data"
+
+# Where to save the database
+save_treated_data: "treated-data"
+save_file_prefix: "summary"
+
+# whether to create a composed image will all information
+load_images: "sample-data"
+load_segmentation_path: "sample-data"
+save_to_images: "treated-data"
+
+
+# Precise labels of raw data
+## files all labelled path/PrefixSuffix.csv
+files_prefix: ""
+
+## The suffix of raw data of the cells
+cells_suffix: "cells"
+
+## The suffix of raw data of the bonds
+bonds_suffix: "bonds"
+
+
+## The suffix of HC identifier images
+## If provided, HC are the cells that contain HCA > 0
+## This file must contain the equivalent of cells, but where the HCA channel 
+## only contains the identifier of HC (e.g. the max of HCA)
+## NOTE ensure that it is 0 in non-HC
+HCA_suffix: "HC"
+
+
+# which column of the data to use for HC identifier
+# is HC, if > 0
+HCA_channel: 'sum_px_intensity_cells_ch1'
+
+
+
+Vangl2KO_load_images: '4_manuals'
+Vangl2KO_information_channel: 'sum_px_intensity_cells_ch3'
+Vangl2KO_min_intensity: ~             # use mean if not provided
+Vangl2KO_threshold_positivity: 0.5  # fraction of pixel above threshold
+Vangl2KO_recomposition: '104_Vangl2KO_recomposition'
+
+
+# Split image filenames and associate in the following order
+# e.g. prefix_E10_25S_13.tif -> stage=E10, position=25S, sample_id=13
+# split_filename: ["stage", "position", "sample_id"]
+# split_filename: ["Experiment", "stage", "position", "sample_id"]
+# split_filename: ["stage", "Experiment", "position", "sample_id", "crop_id"]
+split_filename: ["stage", "position", "sample_id", "crop_id"]
+# split_filename: ["stage", "Experiment", "sample_id"]
+# split_filename: ["Experiment", "sample_id"]
+# split_filename: ["stage", "Experiment", "sample_id", "frame"]
+
+
+provide_defaults:
+    position: 25I
+    stage: E10
+    aligned_with_PD_axis: True
+
+
+## The tracking ids
+is_movie: False
+## Ids associated with cells throughout an image serie
+## Assumes that a folder contains a series of consecutive images
+# tracked_cells_suffix: "tracked_cells"
+# tracked_bonds_suffix: "tracked_bonds"
+tracked_cells_suffix: ~
+tracked_bonds_suffix: ~
+# NOTE HC identified if any of the images has HCA > 0
+
+## Thetime lag between images
+time_frame_column: 'frame'
+time_step: 5
+time_step_units: 'min'
+
+# import_cilia: ~
+import_cilia:
+    # path: "6_cilia_manuals"
+    path: "sample-data/cilia-data"
+    HC_only: True
+    max_radius: 1.2
+    import_kwargs:
+        sep: ","
+        header: 0
+        # pixel_per_micron: [9.65, 9.65]
+        pixel_per_micron: [1., 1.]
+    sort_values:
+        by: ['rho']
+        ascending: [True]
+import_actin_foci: ~
+    # path: "7_actin_foci"
+    # HC_only: False
+    # import_kwargs:
+    #     sep: ","
+    #     header: 0
+    # max_distance_to_cilium: 10
+    # sort_values:
+    #     by: ['rho']
+    #     ascending: [True]
+
+# cilia_sort_values=dict(
+#     by=['Total', 'rho'],
+#     ascending=[False, True]
+# )
+cilia_sort_values_kwargs:
+    by: ['rho']
+    ascending: [True]
+
+ppMLC_foci_path: ~
+# ppMLC_foci_path: "6_ppMLC"
+
+
+
+# Exclude data from database
+## NOTE this will speed up calculations significantly
+## NOTE data will not be available in resulting file
+
+## Select a stage
+select_data: ~
+# select_data:
+#     # stage: ~        # use all available data
+#     # stage: "E10"
+#     # NOTE ignored if none
+
+#     # # Select a position 
+#     # position: ~     # use all available data
+#     position: "25I"
+
+#     sample_id: 0
+
+# Whether to exclude border cells from final file
+## NOTE they will be included in calculations
+exclude_border_cells: True
