@@ -430,8 +430,9 @@ def import_data(
         HCA = None
         
         if track_id_cells is None:
-            log.info("HC density per file: ")
-            print(cells.groupby('filename').apply(lambda frame: frame[frame['is_HC']]['index'].count() / frame['index'].count()))
+            log.info("HC density per file: \n{}".format(
+                cells.groupby('filename').apply(lambda frame: frame[frame['is_HC']]['index'].count() / frame['index'].count())
+            ))
 
         
         # extract information from filename
@@ -555,8 +556,9 @@ def import_data(
     log.info("---------")
     log.info("Important Info:")
     log.info("")
-    log.info("HCs have an average HCA criterion of:")
-    print(cells.loc[cells['is_HC']].groupby(by='file_id')['HCA_criterion'].mean())
+    log.info("HCs have an average HCA criterion of: \n{}".format(
+        cells.loc[cells['is_HC']].groupby(by='file_id')['HCA_criterion'].mean()
+    ))
 
     if (cells.groupby(by='file_id')['HCA_criterion'].mean().max() > 255 * 10):
         log.error("=======================================")
@@ -603,8 +605,8 @@ def import_data(
         bonds = bonds.loc[bonds[s] == f]
 
     if 'stage' in cells.columns and 'position' in cells.columns:
-        log.info("Gathered %i cells (incl. %i HC) at stages %s and positions %s. "
-                "%i files: \n %s",
+        log.info("Gathered %i cells (incl. %i HC) at stages %s and positions %s "
+                "from %i files: \n %s",
                 cells.shape[0],
                 cells.loc[cells['is_HC']].shape[0],
                 cells['stage'].unique(),
@@ -620,7 +622,7 @@ def import_data(
 
     if cells.empty or bonds.empty:
         raise RuntimeError("Cell data is empty. Nothing to process!")
-
+    
     log.info("--------------------")
     log.info("Retrieving meta-data")
     log.info("--------------------")
@@ -696,7 +698,6 @@ def import_data(
     cells['vx_coords_y_cells'] = result.apply(lambda r: r[1])
 
 
-
     log.debug("Assigning neighbourhood ...")
     _time = time.time()
 
@@ -754,12 +755,15 @@ def import_data(
 
     bonds['type'] = bonds.apply(get_bond_type, axis=1)
 
+    log.info("Assigned neighbourhood in %.2f s.", time.time() - _time)
+
     if not bonds.loc[bonds['type']=='HH'].empty:
         log.info("Number of HC-HC junctions: \n{}".format(bonds.loc[bonds['type']=='HH'].groupby(by=['filename', 'type'])['type'].count()))
     else:
         log.info("No HC-HC junctions segmented.")
-    log.info("Assigned neighbourhood in %.2f s.", time.time() - _time)
+
     log.info("---")
+    # --------------------------
 
     # Normalize area
     log.debug("Normalizing length scales ...")
