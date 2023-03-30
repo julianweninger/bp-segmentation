@@ -1,0 +1,4 @@
+__pycache__
+
+# exclude results
+treated-data/*
