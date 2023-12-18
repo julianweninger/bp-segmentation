@@ -71,6 +71,7 @@ def recover_data(*, paths: List,
 
     cells['vx_coords_x_cells'] = cells['vx_coords_x_cells'].apply(split_str_to_list_int)
     cells['vx_coords_y_cells'] = cells['vx_coords_y_cells'].apply(split_str_to_list_int)
+    
     if 'next_HC_neighbors' in cells.columns:
         cells['next_HC_neighbors'] = cells['next_HC_neighbors'].apply(split_str_to_list_int)
 
