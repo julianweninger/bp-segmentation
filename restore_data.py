@@ -28,13 +28,30 @@ def recover_data(*, paths: List,
                  save_file_prefix: str="treated",
                  cells_suffix: str="cells",
                  bonds_suffix: str="bonds",
+                 delimiter: str=',',
                  cells__local_id_bonds_split=' '
                 ):
-    cells = pd.read_csv(os.path.join(paths[0], save_file_prefix + f"_{cells_suffix}.csv"))
-    bonds = pd.read_csv(os.path.join(paths[0], save_file_prefix + f"_{bonds_suffix}.csv"))
+    def read_csv(path, save_file_prefix, cells_suffix, bonds_suffix, delimiter):
+        if len(save_file_prefix) > 0:
+            cells = pd.read_csv(os.path.join(path, save_file_prefix + f"_{cells_suffix}.csv"), sep=delimiter)
+            bonds = pd.read_csv(os.path.join(path, save_file_prefix + f"_{bonds_suffix}.csv"), sep=delimiter)
+        else:
+            cells = pd.read_csv(os.path.join(path, f"{cells_suffix}.csv"), sep=delimiter)
+            bonds = pd.read_csv(os.path.join(path, f"{bonds_suffix}.csv"), sep=delimiter)
 
-    cells = cells.drop(['Unnamed: 0', 'index'], axis=1)
-    bonds = bonds.drop(['Unnamed: 0', 'index'], axis=1)
+        if 'Unnamed: 0' in cells.columns:
+            cells = cells.drop(['Unnamed: 0'], axis=1)
+            bonds = bonds.drop(['Unnamed: 0'], axis=1)
+        if 'index' in cells.columns:
+            cells = cells.drop(['index'], axis=1)
+            bonds = bonds.drop(['index'], axis=1)
+        if 'Var1' in cells.columns:
+            cells = cells.drop(['Var1'], axis=1)
+            bonds = bonds.drop(['Var1'], axis=1)
+
+        return cells, bonds
+    
+    cells, bonds = read_csv(paths[0], save_file_prefix, cells_suffix, bonds_suffix, delimiter)
     
     def split_str_to_list_int(coords):
         x = []
@@ -58,19 +75,42 @@ def recover_data(*, paths: List,
         cells['next_HC_neighbors'] = cells['next_HC_neighbors'].apply(split_str_to_list_int)
 
     for path in paths[1:]:
-        cs = pd.read_csv(os.path.join(path, save_file_prefix + "_cells.csv"))
-        cs = cs.drop(['Unnamed: 0', 'index'], axis=1)
+        cs, bs = read_csv(path, save_file_prefix, cells_suffix, bonds_suffix, delimiter)
         cells = pd.concat([cells, cs], axis=0, join='outer')
-
-        bs = pd.read_csv(os.path.join(path, save_file_prefix + "_bonds.csv"))
-        bs = bs.drop(['Unnamed: 0', 'index'], axis=1)
         bonds = pd.concat([bonds, bs], axis=0, join='outer')
 
     cells = cells.reset_index()
     bonds = bonds.reset_index()
 
-    cells, bonds = add_global_ids(cells=cells, bonds=bonds, cells__local_id_bonds_split=cells__local_id_bonds_split)
+    filenames = cells['filename'].unique()
+    filepaths = cells['filepath'].unique()
+    for id_path, path in enumerate(filepaths):
+        for id, f in enumerate(np.unique(cells.loc[cells['filepath'] == path, 'filename'])):
+            mask = np.where(
+                cells['filename']==f,
+                cells['filepath']==path,
+                False
+            )
+            cells.loc[mask, 'file_id'] = id + id_path * len(filenames)
+            if cells.loc[mask].empty:
+                raise RuntimeError("No cells at {} ({})".format(f, path))
 
+            local_ids = cells.loc[mask, 'local_id_cells']
+            if len(local_ids.unique()) != len(local_ids):
+                print("ERROR")
+                print(cells.loc[mask].to_string())
+                raise RuntimeError("Failed to identify a frame. Found duplicate cells.")
+
+            mask = np.where(
+                bonds['filename']==f,
+                bonds['filepath']==path,
+                False
+            )
+            bonds.loc[mask, 'file_id'] = id + id_path * len(filenames)
+            if bonds.loc[mask].empty:
+                raise RuntimeError("No bonds at {} ({})".format(f, path))
+
+    cells, bonds = add_global_ids(cells=cells, bonds=bonds, cells__local_id_bonds_split=cells__local_id_bonds_split)
 
 
     cells['SI_position_long'] = cells['SI_position'].where(cells['SI_position'] != 'S', 'Superior')
@@ -125,35 +165,6 @@ def recover_data(*, paths: List,
                       inplace=True)
     bonds.sort_values(by=['stage', 'position', 'file_id'], key=lambda x: x.map(ordering),
                       inplace=True)
-
-    
-    filenames = cells['filename'].unique()
-    filepaths = cells['filepath'].unique()
-    for id_path, path in enumerate(filepaths):
-        for id, f in enumerate(np.unique(cells.loc[cells['filepath'] == path, 'filename'])):
-            mask = np.where(
-                cells['filename']==f,
-                cells['filepath']==path,
-                False
-            )
-            cells.loc[mask, 'file_id'] = id + id_path * len(filenames)
-            if cells.loc[mask].empty:
-                raise RuntimeError("No cells at {} ({})".format(f, path))
-
-            local_ids = cells.loc[mask, 'local_id_cells']
-            if len(local_ids.unique()) != len(local_ids):
-                print("ERROR")
-                print(cells.loc[mask])
-                raise RuntimeError("Failed to identify a frame. Found duplicate cells.")
-
-            mask = np.where(
-                bonds['filename']==f,
-                bonds['filepath']==path,
-                False
-            )
-            bonds.loc[mask, 'file_id'] = id + id_path * len(filenames)
-            if bonds.loc[mask].empty:
-                raise RuntimeError("No bonds at {} ({})".format(f, path))
 
 
     print("Gathered {} cells, of which {} HC at stages {} and positions {} "

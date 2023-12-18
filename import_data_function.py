@@ -622,7 +622,7 @@ def import_data(
 
     if cells.empty or bonds.empty:
         raise RuntimeError("Cell data is empty. Nothing to process!")
-    
+
     log.info("--------------------")
     log.info("Retrieving meta-data")
     log.info("--------------------")
@@ -643,7 +643,7 @@ def import_data(
                 meta_dict['resolution_x'] = meta_dict.get('XResolution', [np.nan])[0] / 1.e6
                 meta_dict['resolution_y'] = meta_dict.get('YResolution', [np.nan])[0] / 1.e6
 
-            if np.isnan(meta_dict['resolution_x']) or np.isnan(meta_dict['resolution_x']):
+            if np.isnan(meta_dict['resolution_x']) or np.isnan(meta_dict['resolution_y']):
                 log.warning("No resolution found for image {}".format(filename))
 
             else:
@@ -655,7 +655,7 @@ def import_data(
                         ))
         
         else:
-            log.warning("No resolution found for image '{}'".format(filename))
+            log.warning("No image available at %s", image_path)
 
 
         cells.loc[cells['filename'] == filename, 'resolution_x'] = meta_dict['resolution_x']
