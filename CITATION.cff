@@ -8,6 +8,8 @@ authors:
     orcid: 'https://orcid.org/0000-0002-4542-9519'
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.14917594
+  - type: doi
     value: 10.21203/rs.3.rs-2508957/v1
     description: >-
       Prakash et al., 2023: Junctional Force Patterning
