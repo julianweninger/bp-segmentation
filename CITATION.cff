@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: Tissue Segmentation for Basilar Papilla
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - family-names: Weninger
+    given-names: Julian
+    orcid: 'https://orcid.org/0000-0002-4542-9519'
+identifiers:
+  - type: doi
+    value: 10.21203/rs.3.rs-2508957/v1
+    description: >-
+      Prakash et al., 2023: Junctional Force Patterning
+      drives both Positional and Orientational Order in
+      Auditory Epithelia
+license: GPL-3.0
+version: 0.1
+date-released: '2024-04-01'
