@@ -21,3 +21,5 @@ This project contains the following notebooks:
     This notebook analyses the live imaging data from BP
 1. analyse_segment_whole_BP.ipynb :
     This notebook performs the steps towards segmentation and analyses the whole BP HC antigen staining
+1. analyse_BP_3D.ipynb :
+    This notebook analyses the volume segmentation of HC from BP
